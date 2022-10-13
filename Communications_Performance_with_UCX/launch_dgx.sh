@@ -1,11 +1,11 @@
 #PBS -P jx00
-#PBS -N cudf-merge-benchmark
-#PBS -q gpuvolta
+#PBS -N cudf-merge-benchmark-dgx
+#PBS -q dgxa100
 #PBS -l walltime=00:10:00
 #PBS -l ngpus=16
-#PBS -l ncpus=192
+#PBS -l ncpus=256
 #PBS -l mem=1536GB
-#PBS -l storage=scratch/il82
+#PBS -l storage=scratch/jx00
 
 CFG_FILE=${PBS_O_WORKDIR}/cluster.cfg
 if [ ! -f $DIRECTORY_NAME ]; then
@@ -60,12 +60,12 @@ NODE_NUM=0
 for host in $ALL_HOSTS; do
     echo "ssh -o StrictHostKeyChecking=no -n -f $host \
         \"cd $TEST_DIR; \
-        TMPDIR=${TMPDIR} PBS_JOBID=${PBS_JOBID} PBS_NGPUS=${PBS_NGPUS} PBS_O_WORKDIR=${PBS_O_WORKDIR} nohup bash $TEST_DIR/run-cluster.sh \
+        TMPDIR=${TMPDIR} PBS_JOBID=${PBS_JOBID} PBS_NGPUS=${PBS_NGPUS} PBS_O_WORKDIR=${PBS_O_WORKDIR} nohup bash $TEST_DIR/run-cluster_dgx.sh \
         false \
         ${NODE_NUM} &> /dev/null &\""
     ssh -o StrictHostKeyChecking=no -n -f $host \
         "cd $TEST_DIR; \
-        TMPDIR=${TMPDIR} PBS_JOBID=${PBS_JOBID} PBS_NGPUS=${PBS_NGPUS} PBS_O_WORKDIR=${PBS_O_WORKDIR} nohup bash $TEST_DIR/run-cluster.sh \
+        TMPDIR=${TMPDIR} PBS_JOBID=${PBS_JOBID} PBS_NGPUS=${PBS_NGPUS} PBS_O_WORKDIR=${PBS_O_WORKDIR} nohup bash $TEST_DIR/run-cluster_dgx.sh \
         false \
         ${NODE_NUM} &> /dev/null &"
 
@@ -73,7 +73,7 @@ for host in $ALL_HOSTS; do
 done
 
 # Launch server
-echo "bash $TEST_DIR/run-cluster.sh true &> /dev/null"
-bash $TEST_DIR/run-cluster.sh true
+echo "bash $TEST_DIR/run-cluster_dgx.sh true &> /dev/null"
+bash $TEST_DIR/run-cluster_dgx.sh true
 
 echo "Completed at $(date)"
