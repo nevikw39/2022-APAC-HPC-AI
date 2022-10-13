@@ -1,14 +1,14 @@
 #!/bin/bash
 #PBS -N Leopard_NCI
-#PBS -P il82
+#PBS -P jx00
 #PBS -r y
-#PBS -q gpuvolta  
-#PBS -l storage=gdata/ik06 
+#PBS -q gpuvolta
+#PBS -l storage=scratch/jx00 
 #PBS -l walltime=01:30:00 
 #PBS -l ncpus=24
 #PBS -l ngpus=2
-#PBS -l mem=100GB
-#PBS -M ke.ding@anu.edu.au
+#PBS -l mem=200GB
+#PBS -M nevikw39m110.nthu.edu.tw
 #PBS -m e
 
 
@@ -22,12 +22,12 @@ module load openmpi
 
 # setup conda environment 
 # -- change the path to your own conda directory
-source /g/data/ik06/stark/anaconda3/etc/profile.d/conda.sh
+source /scratch/jx00/cw2590/miniconda/etc/profile.d/conda.sh
 conda init bash
-conda activate deep_tf
+conda activate leopard
 
 # run the bechmark over 2 GPUs
 # -- change the path to your own 
-source /g/data/ik06/stark/NCI_Leopard/multi_gpus_train.sh
+source /scratch/jx00/cw2590/DL-based-DNA-decoding/multi_gpus_train.sh
 
 

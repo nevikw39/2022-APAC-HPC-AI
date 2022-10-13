@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python3 /g/data/ik06/stark/NCI_Leopard/deep_tf.py -m cnn
-#python3 /g/data/ik06/stark/NCI_Leopard/deep_tf.py -m unet
+#python3 /scratch/jx00/cw2590/DL-based-DNA-decoding/deep_tf.py -m cnn
+python3 /scratch/jx00/cw2590/DL-based-DNA-decoding/deep_tf.py -m leopard_unet -b 64

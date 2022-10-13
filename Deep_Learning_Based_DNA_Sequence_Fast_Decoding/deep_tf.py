@@ -34,7 +34,7 @@ def get_args():
                         help='draw frequency (default draw 1 time)')
     parser.add_argument('-r', '--random_seed', default=1, type=int,
                         help='fix random seed')
-    parser.add_argument('-f', '--path', default='/g/data/ik06/stark/NCI_Leopard/', type=str,
+    parser.add_argument('-f', '--path', default='/scratch/jx00/2022-APAC-HPC-AI/Deep_Learning_Based_DNA_Sequence_Fast_Decoding/', type=str,
                         help='save data to path')
     args = parser.parse_args()
     return args
@@ -80,7 +80,7 @@ def main():
     # load model
     model = return_model(model_arch, max_len, vocab_size)
 
-    opt = tf.optimizers.Adam(0.001 * hvd.size())
+    opt = tf.optimizers.Adam(0.01 * hvd.size())
 
     # Horovod: add Horovod DistributedOptimizer.
     opt = hvd.DistributedOptimizer(opt)
