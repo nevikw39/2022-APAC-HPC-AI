@@ -1,0 +1,113 @@
+$ python cudf-merge.py         --server         --server-file /scratch/jx00/cw2590/benchmarks-ucx-py/job-out/.server-59538446.gadi-pbs.json         --n-devs-on-net 16         --iter 100         -c 25_000_000
+cuDF merge benchmark
+--------------------------------------------------------------------------------------------------------------
+Number of devices         | 16
+Rows per chunk            | 25000000
+Total data processed      | 1.16 TiB
+Data processed per iter   | 11.92 GiB
+==============================================================================================================
+Wall-clock                | 96.37 s
+Bandwidth                 | 1.15 GiB/s
+Throughput                | 12.37 GiB/s
+==============================================================================================================
+Iteration                 | Wall-clock                | Bandwidth                 | Throughput
+0                         | 1.01 s                    | 1.12 GiB/s                | 11.82 GiB/s
+1                         | 994.68 ms                 | 1.11 GiB/s                | 11.98 GiB/s
+2                         | 923.86 ms                 | 1.18 GiB/s                | 12.90 GiB/s
+3                         | 991.07 ms                 | 1.14 GiB/s                | 12.03 GiB/s
+4                         | 964.11 ms                 | 1.12 GiB/s                | 12.36 GiB/s
+5                         | 1.02 s                    | 1.13 GiB/s                | 11.74 GiB/s
+6                         | 929.58 ms                 | 1.18 GiB/s                | 12.82 GiB/s
+7                         | 958.29 ms                 | 1.17 GiB/s                | 12.44 GiB/s
+8                         | 975.33 ms                 | 1.13 GiB/s                | 12.22 GiB/s
+9                         | 954.40 ms                 | 1.15 GiB/s                | 12.49 GiB/s
+10                        | 954.97 ms                 | 1.17 GiB/s                | 12.48 GiB/s
+11                        | 962.51 ms                 | 1.14 GiB/s                | 12.39 GiB/s
+12                        | 969.78 ms                 | 1.15 GiB/s                | 12.29 GiB/s
+13                        | 982.44 ms                 | 1.15 GiB/s                | 12.13 GiB/s
+14                        | 938.83 ms                 | 1.16 GiB/s                | 12.70 GiB/s
+15                        | 964.00 ms                 | 1.16 GiB/s                | 12.37 GiB/s
+16                        | 960.51 ms                 | 1.17 GiB/s                | 12.41 GiB/s
+17                        | 978.63 ms                 | 1.12 GiB/s                | 12.18 GiB/s
+18                        | 943.90 ms                 | 1.16 GiB/s                | 12.63 GiB/s
+19                        | 983.51 ms                 | 1.15 GiB/s                | 12.12 GiB/s
+20                        | 993.97 ms                 | 1.14 GiB/s                | 11.99 GiB/s
+21                        | 862.71 ms                 | 1.21 GiB/s                | 13.82 GiB/s
+22                        | 1.01 s                    | 1.14 GiB/s                | 11.82 GiB/s
+23                        | 938.28 ms                 | 1.15 GiB/s                | 12.71 GiB/s
+24                        | 949.53 ms                 | 1.18 GiB/s                | 12.55 GiB/s
+25                        | 977.78 ms                 | 1.17 GiB/s                | 12.19 GiB/s
+26                        | 928.20 ms                 | 1.16 GiB/s                | 12.84 GiB/s
+27                        | 974.13 ms                 | 1.14 GiB/s                | 12.24 GiB/s
+28                        | 1.00 s                    | 1.13 GiB/s                | 11.91 GiB/s
+29                        | 994.26 ms                 | 1.11 GiB/s                | 11.99 GiB/s
+30                        | 948.41 ms                 | 1.18 GiB/s                | 12.57 GiB/s
+31                        | 968.91 ms                 | 1.13 GiB/s                | 12.30 GiB/s
+32                        | 953.66 ms                 | 1.19 GiB/s                | 12.50 GiB/s
+33                        | 951.36 ms                 | 1.15 GiB/s                | 12.53 GiB/s
+34                        | 947.60 ms                 | 1.15 GiB/s                | 12.58 GiB/s
+35                        | 978.13 ms                 | 1.16 GiB/s                | 12.19 GiB/s
+36                        | 898.30 ms                 | 1.18 GiB/s                | 13.27 GiB/s
+37                        | 972.61 ms                 | 1.20 GiB/s                | 12.26 GiB/s
+38                        | 949.89 ms                 | 1.15 GiB/s                | 12.55 GiB/s
+39                        | 969.73 ms                 | 1.16 GiB/s                | 12.29 GiB/s
+40                        | 997.73 ms                 | 1.20 GiB/s                | 11.95 GiB/s
+41                        | 953.81 ms                 | 1.15 GiB/s                | 12.50 GiB/s
+42                        | 989.95 ms                 | 1.13 GiB/s                | 12.04 GiB/s
+43                        | 958.60 ms                 | 1.16 GiB/s                | 12.44 GiB/s
+44                        | 984.84 ms                 | 1.12 GiB/s                | 12.10 GiB/s
+45                        | 966.93 ms                 | 1.15 GiB/s                | 12.33 GiB/s
+46                        | 972.10 ms                 | 1.15 GiB/s                | 12.26 GiB/s
+47                        | 984.74 ms                 | 1.12 GiB/s                | 12.11 GiB/s
+48                        | 948.31 ms                 | 1.17 GiB/s                | 12.57 GiB/s
+49                        | 911.09 ms                 | 1.19 GiB/s                | 13.08 GiB/s
+50                        | 1.01 s                    | 1.12 GiB/s                | 11.81 GiB/s
+51                        | 962.52 ms                 | 1.14 GiB/s                | 12.39 GiB/s
+52                        | 973.40 ms                 | 1.14 GiB/s                | 12.25 GiB/s
+53                        | 990.29 ms                 | 1.12 GiB/s                | 12.04 GiB/s
+54                        | 968.29 ms                 | 1.16 GiB/s                | 12.31 GiB/s
+55                        | 956.40 ms                 | 1.15 GiB/s                | 12.46 GiB/s
+56                        | 963.22 ms                 | 1.17 GiB/s                | 12.38 GiB/s
+57                        | 949.38 ms                 | 1.17 GiB/s                | 12.56 GiB/s
+58                        | 967.12 ms                 | 1.15 GiB/s                | 12.33 GiB/s
+59                        | 957.93 ms                 | 1.15 GiB/s                | 12.44 GiB/s
+60                        | 967.95 ms                 | 1.16 GiB/s                | 12.32 GiB/s
+61                        | 988.67 ms                 | 1.13 GiB/s                | 12.06 GiB/s
+62                        | 918.06 ms                 | 1.16 GiB/s                | 12.98 GiB/s
+63                        | 1.01 s                    | 1.13 GiB/s                | 11.82 GiB/s
+64                        | 945.02 ms                 | 1.18 GiB/s                | 12.61 GiB/s
+65                        | 886.66 ms                 | 1.18 GiB/s                | 13.44 GiB/s
+66                        | 1.03 s                    | 1.14 GiB/s                | 11.56 GiB/s
+67                        | 943.93 ms                 | 1.19 GiB/s                | 12.63 GiB/s
+68                        | 957.47 ms                 | 1.16 GiB/s                | 12.45 GiB/s
+69                        | 981.91 ms                 | 1.11 GiB/s                | 12.14 GiB/s
+70                        | 967.38 ms                 | 1.14 GiB/s                | 12.32 GiB/s
+71                        | 964.00 ms                 | 1.17 GiB/s                | 12.37 GiB/s
+72                        | 963.87 ms                 | 1.16 GiB/s                | 12.37 GiB/s
+73                        | 936.45 ms                 | 1.17 GiB/s                | 12.73 GiB/s
+74                        | 963.84 ms                 | 1.17 GiB/s                | 12.37 GiB/s
+75                        | 927.69 ms                 | 1.18 GiB/s                | 12.85 GiB/s
+76                        | 922.59 ms                 | 1.16 GiB/s                | 12.92 GiB/s
+77                        | 964.05 ms                 | 1.15 GiB/s                | 12.37 GiB/s
+78                        | 997.33 ms                 | 1.14 GiB/s                | 11.95 GiB/s
+79                        | 977.04 ms                 | 1.18 GiB/s                | 12.20 GiB/s
+80                        | 919.14 ms                 | 1.16 GiB/s                | 12.97 GiB/s
+81                        | 997.60 ms                 | 1.13 GiB/s                | 11.95 GiB/s
+82                        | 957.93 ms                 | 1.16 GiB/s                | 12.44 GiB/s
+83                        | 974.98 ms                 | 1.15 GiB/s                | 12.23 GiB/s
+84                        | 954.27 ms                 | 1.15 GiB/s                | 12.49 GiB/s
+85                        | 973.51 ms                 | 1.15 GiB/s                | 12.25 GiB/s
+86                        | 967.29 ms                 | 1.16 GiB/s                | 12.32 GiB/s
+87                        | 998.10 ms                 | 1.13 GiB/s                | 11.94 GiB/s
+88                        | 952.52 ms                 | 1.15 GiB/s                | 12.52 GiB/s
+89                        | 926.55 ms                 | 1.18 GiB/s                | 12.87 GiB/s
+90                        | 966.15 ms                 | 1.13 GiB/s                | 12.34 GiB/s
+91                        | 1.01 s                    | 1.12 GiB/s                | 11.75 GiB/s
+92                        | 977.41 ms                 | 1.14 GiB/s                | 12.20 GiB/s
+93                        | 956.10 ms                 | 1.15 GiB/s                | 12.47 GiB/s
+94                        | 839.22 ms                 | 1.29 GiB/s                | 14.20 GiB/s
+95                        | 1.00 s                    | 1.13 GiB/s                | 11.87 GiB/s
+96                        | 999.49 ms                 | 1.12 GiB/s                | 11.93 GiB/s
+97                        | 951.69 ms                 | 1.15 GiB/s                | 12.53 GiB/s
+98                        | 928.74 ms                 | 1.16 GiB/s                | 12.84 GiB/s
+99                        | 969.96 ms                 | 1.14 GiB/s                | 12.29 GiB/s
