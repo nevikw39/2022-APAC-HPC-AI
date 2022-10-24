@@ -14,8 +14,8 @@
 
 ### Result Logs
 
-- **Single node**: [High_Performance\ Computing_with_Quantum_Espresso/qe-single.log](High_Performance\ Computing_with_Quantum_Espresso/qe-single.log)
-- **Multiple nodes**: [High_Performance\ Computing_with_Quantum_Espresso/qe-multi.log](High_Performance\ Computing_with_Quantum_Espresso/qe-multi.log)
+- **Single node**: [High_Performance Computing_with_Quantum_Espresso/qe-single.log](High_Performance%20Computing_with_Quantum_Espresso/qe-single.log)
+- **Multiple nodes**: [High_Performance Computing_with_Quantum_Espresso/qe-multi.log](High_Performance%20Computing_with_Quantum_Espresso/qe-multi.log)
 
 ## Communications Performance with UCX
 
