@@ -9,8 +9,8 @@
 
 ### Job Scripts
 
-- **Single node**: [High_Performance\ Computing_with_Quantum_Espresso/CeO2_qe_input/qe-single.sh](High_Performance\ Computing_with_Quantum_Espresso/CeO2_qe_input/qe-single.sh)
-- **Multiple nodes**: [High_Performance\ Computing_with_Quantum_Espresso/CeO2_qe_input/qe-multi.sh](High_Performance\ Computing_with_Quantum_Espresso/CeO2_qe_input/qe-multi.sh)
+- **Single node**: [High_Performance Computing_with_Quantum_Espresso/CeO2_qe_input/qe-single.sh](High_Performance%20Computing_with_Quantum_Espresso/CeO2_qe_input/qe-single.sh)
+- **Multiple nodes**: [High_Performance Computing_with_Quantum_Espresso/CeO2_qe_input/qe-multi.sh](High_Performance%20Computing_with_Quantum_Espresso/CeO2_qe_input/qe-multi.sh)
 
 ### Result Logs
 
