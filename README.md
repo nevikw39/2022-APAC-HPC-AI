@@ -5,6 +5,13 @@
 > 
 > [GitHub link](https://github.com/nevikw39/2022-APAC-HPC-AI/)
 
+Report links:
+1. [HPC with QE](2022_APAC_HPC-AI_Team_NTHU-1_High_Performance_Computing_With_Quantum_Espresso.pdf)
+2. [Communications Performance with UCX](2022_APAC_HPC-AI_Team_NTHU-1_Communication_Performance_with_UCX.pdf)
+3. [DL-based DNA Sequence Fast Decoding](2022_APAC_HPC-AI_Team_NTHU-1_Deep-Learning-based_DNA_Sequence_Fast_Decoding.pdf)
+
+And here is presentation [link](2022_APAC_HPC-AI_Team_NTHU-1_Presentation.pdf).
+
 ## HPC with QE
 
 ### Job Scripts
@@ -28,7 +35,7 @@ Our optimized configurations has beed appended to [Communications_Performance_wi
 - **Small data set**: [Communications_Performance_with_UCX/small_data_set.out](Communications_Performance_with_UCX/small_data_set.out)
 - **Large data set**: [Communications_Performance_with_UCX/small_data_set.out](Communications_Performance_with_UCX/large_data_set.out)
 
-## Deep-Learning-Based DNA Sequence Fast Decoding
+## DL-Based DNA Sequence Fast Decoding
 
 Environment installation is the same as original task.
 
