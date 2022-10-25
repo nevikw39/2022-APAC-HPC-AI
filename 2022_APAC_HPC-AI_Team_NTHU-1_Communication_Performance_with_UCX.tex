@@ -1,0 +1,286 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{parskip}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{pgfplots}
+\usepackage{tikz}
+
+\definecolor{nthu}{HTML}{7F1084}
+\definecolor{secondary}{HTML}{910A17}
+\definecolor{accent}{HTML}{410A91}
+
+% \setlength{\parindent}{0pt}
+% \setlength{\parskip}{\baselineskip}
+
+\renewcommand{\arraystretch}{1.35}
+
+\title{2022 APAC HPC-AI\\Communications Performance with \textsf{UCX}: Dataframe Merging}
+\author{Team NTHU-1}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\listoftables
+
+In this task, we are to run a dataframe merging benchmark on Gadi nodes, which communicates with each other via \textsf{UCX} \textit{(Unified Communication X)}.
+
+\section{Introduction}
+
+The benchmark is run on 16 GPUs, on each of which is a worker there with left and right dataframe distributed throughout all GPUs. It is our task that each worker merges its left and right dataframe, which means that a worker need communicate with others at scale.
+
+There are two major metrics --- bandwidth as well as throughput --- to measure the performance of the benchmark we run. We tried to discover the instinct meaning of the two by means of investigating and interpreting the codes provided.
+
+\subsection{Bandwidth}
+
+For a particular worker, its bandwidth is defined to the average of the amount of data it communicated with all other workers of left and the right dataframe, divided by wall time. Without lost of generality, let's consider the worker with rank 0, then its bandwidth could be expressed as: $$\mathrm{Bandwidth}=\frac{\mathrm{bw}_{left}+\mathrm{bw}_{right}}{2}$$, where the bandwidth of left or right dataframe is $\mathrm{bw}=\frac{\displaystyle\sum_{i=1}^{15}size\ of\ \mathrm{Dataframe\ transferred}_i}{\displaystyle\sum_{i=1}^{15}\mathrm{Wall\ time}_i}$.
+
+\subsection{Throughput}
+
+The throughput of an iteration is defined as: $$\mathrm{Throughput}=\frac{\mathrm{\#\ chunks}\times\mathrm{Data\ processed}}{\mathrm{Wall\ time}}$$, where ``Data processed'' indicates the total amount of data being transferred and processed by all workers during each iteration.
+
+\rule{\linewidth}{.64px}
+
+We believe that there should be some relation between the two metrics yet that throughput is more comprehensive, so we put more emphasis on it.
+
+\section{Optimized Configurations}
+
+We tried various sorts of \textsf{UCX} options. Most of them were \texttt{export}ed as environment variables in the \texttt{cluster.cfg}.
+
+% \subsection{Ensure CUDA device}
+
+% We've noticed that there is a part of code which creates a local \textsf{UCX} network in file \texttt{utils\_multi\_node.py}. There are several modifiable parameters, and one of them is \texttt{ensure\_cuda\_device}. 
+
+% According to the comments in \texttt{utils\_multi\_node.py}, setting \texttt{ensure\_cuda\_device} to \texttt{True} sets the \texttt{CUDA\_VISIBLE\_DEVICES} environment variable to match the proper CUDA device based on the worker's rank. Also, having this set to \texttt{False} may cause all workers to use device 0, thus potentially leading to low performance. Hence we set \texttt{ensure\_cuda\_device} to \texttt{True}, which improves the performance from 3.95 GiB/s to 4.27 GiB/s (108.1\% speedup). We continued the following experiments with this modification.
+
+\subsection{Enable \textit{Hardware Tag Matching}}
+
+In \textit{Tag Matching}, the software holds a list of matching entries called matching list. Each matching entry contains a tag and a pointer to an application buffer. The matching list is used to steer arriving messages to a specific buffer according to the message tag. The action of traversing the matching list and finding the matching entry is called \textit{Tag Matching}.
+
+Sending messages with numeric tags accelerates the processing of incoming messages, leading to better CPU utilization and lower latency for expected messages. Currently, \textit{Hardware Tag Matching} is supported for the accelerated RC \textit{(Reliable Connected)} and DC \textit{(Dynamic Connected)} transports, and we found that it can be enabled by setting the following environment parameters:
+\begin{itemize}
+	\item \texttt{UCX\_RC\_MLX5\_TM\_ENABLE=y}
+	\item \texttt{UCX\_DC\_MLX5\_TM\_ENABLE=y}
+\end{itemize}
+
+By setting these two environment parameters, the bandwidth improved to 521.87 MiB/s (102.9\% speedup), and the throughput improved from 4.27 GiB/s to 4.36 GiB/s (102.1\% speedup).
+
+\subsection{Use mutex for Multithreading Support}
+
+The environment variable \texttt{UCX\_USE\_MT\_MUTEX} is set to \texttt{n} by default, which means not using \textbf{mutex} for multithreading support and using \textbf{spinlock} instead. 
+
+Both \textbf{spinlock} and \textbf{mutex} are common synchronization mechanism.
+The difference between them is: the mechanism that \textbf{mutex} uses is sleep-waiting, while the mechanism that \textbf{spinlock} uses is busy-waiting. That is, when a thread tries to lock a \textbf{mutex} and it does not succeed, it will go to sleep, immediately allowing another thread to run. As for \textbf{spinlock}, as long as the \textbf{spinlock} polling is blocking the only available CPU core, no other thread can run and the lock won't be unlocked either.
+
+There are some pros and cons for both of them, listed below:
+% \begin{description}
+% 	\item[Pro for mutex] Having better adaptability.
+% 	\item[Con for mutex] Costs more resources since require switches.
+% 	\item[Pro for spinlock] Costs less resources, compared to mutex.
+% 	\item[Con for spinlock] Spend more user time since threads spend time on waiting at its core.
+% \end{description}
+\begin{table}[htbp]
+    \centering
+    \caption*{Pros \& Cons for \textbf{mutex} \& \textbf{spinlock}}
+    \begin{tabularx}{\linewidth}{c|XX}
+        & Pros & Cons \\\hline
+        \textbf{mutex} & Having better adaptability. & Costs more resources since require switches. \\
+        \textbf{spinlock} & Costs less resources, compared to \textbf{mutex}. & Spend more user time since threads waiting at its core.
+    \end{tabularx}
+    \label{tab:mutex}
+\end{table}
+
+Since we have no idea which one is more efficient for the task, we've tried both of them and gained the following results:
+
+\begin{description}
+	\item[Throughput with spinlock] 4.27 GiB/s
+	\item[Throughput with mutex] 4.71 GiB/s
+\end{description}
+
+We've found out that we should choose \textbf{mutex} instead of \textbf{spinlock}, i.e., having \texttt{UCX\_USE\_MT\_MUTEX} set to \texttt{y},  to get better performance, the bandwidth increased to 509.99 MiB/s (100.5\% speedup), and the throughput increased from 4.27 GiB/s to 4.71 GiB/s (110.3\% speedup).
+
+\subsection{Enable \textit{Non-blocking} Mode}
+
+The option \texttt{UCXPY\_NON\_BLOCKING\_MODE} determines whether to use non-blocking progress mode to receive and send data. We discovered that the performance improves if we enable non-blocking mode, i.e, setting \texttt{UCXPY\_NON\_BLOCKING\_MODE} to 1: the bandwidth increased to 590.62 MiB/s (116.4\% speedup), and the throughput increased from 4.27 GiB/s to 4.96 GiB/s (116.1\% speedup).
+
+\subsection{Switch \textit{Rendezvous} protocol to \textit{Active Messages} scheme}
+
+There is a environment parameters that manipulate communication scheme in \textit{Rendezvous} protocol. Although there are only 3 options:  \texttt{get\_zcopy}, \texttt{put\_zcopy}, \texttt{auto}, documented in detail, we found that there are several other schemes such as \texttt{get\_ppln}, \texttt{put\_ppln} (these two might refer to pipe-lined get / put), \texttt{am}, \texttt{rkey\_ptr}; among all these schemes \texttt{am}, which stands for \textit{Active Messages}, worked better than any other scheme above.
+
+After setting \texttt{UCX\_RNDV\_SCHEME=am}, the bandwidth increased to 546.51 MiB/s (107.7\% speedup), and the throughput increased from 4.27 GiB/s to 5.54 GiB/s (129.7\% speedup), which is a significant improvement.
+
+% \subsection{Disable Nagle algorithm}
+
+% By setting the option \texttt{UCX\_TCP\_NODELAY} to \texttt{y}, we can set \texttt{TCP\_NODELAY} socket option to disable Nagle algorithm, which provides better performance: the throughput increased from 4.27 GiB/s to 4.40 GiB/s (103.0\% speedup) after we exporting this environment parameter. 
+
+% \subsection{}
+% UCX_CUDA_COPY_MAX_REG_RATIO=1.0
+% UCX_MAX_RNDV_RAILS=1
+
+% \subsection{Disable memory type(cuda) cache}
+% UCX_MEMTYPE_CACHE=n
+% This option is set to y by default, which means memory type(cuda) cache is enabled. We discovered that setting this option to n, i.e. disabling the memory type(cuda) cache, would bring higher performance to us. After setting \texttt{UCX_MEMTYPE_CACHE=n}, the bandwidth increased to 546.51 MiB/s (107.7\% speedup), and the throughput increased from 4.27 GiB/s to 5.54 GiB/s (129.7\% speedup), which is a significant improvement.
+
+\subsection{Other parameters \& options}
+
+\subsubsection{Adjust the initial pool size for memories}
+
+In the dask training, the lecturer mentioned that we can adjust the \texttt{--rmm\_pool\_size} parameter to determine the size of memory to allocate at the beginning while initializing a cluster. \textsf{RMM} is memory manager from \textsf{RAPIDS}. Since memory allocation is an expensive operation, allocating a big chunk of memory improves performance.
+
+Similarly, we found the parameter \texttt{--rmm-init-pool-size} in file \texttt{run-cluster.sh}, and we thought about that setting the initial memory size which exactly same as usage may reduce waste of memory and maybe improve the performance.
+
+Without any optimal configuration, the performance do increase if we make the initial pool size smaller. The default \texttt{--rmm-init-pool-size} is set to $3\times10^{10}$. If we set to $2.5\times10^{10}$, the throughput increased from 4.27 GiB/s to 4.74 GiB/s; if setting to $2\times10^{10}$, the throughput increased from 4.27 GiB/s to 4.35 GiB/s (101.9\% speedup).
+
+However, with the optimal configurations, setting \texttt{--rmm-init-pool-size} smaller doesn't guaranteed that the performance would be better. The best throughput we could achieve with \texttt{--rmm-init-pool-size} set to  $3\times10^{10}$ is 8.98 GiB/s. If we set it to $2.5\times10^{10}$ and $2\times10^{10}$, then the throughput would come to 8.25 GiB/s and 8.27 GiB/s, respectively, which is a bit worse than the best performance. 
+
+\subsubsection{Enable various optimizations for homogeneous environment}
+
+Setting \texttt{UCX\_UNIFIED\_MODE} to \texttt{y} enables various optimizations intended for homogeneous environment. According to the document, enabling this mode implies that the local transport resources/devices of all entities which connect to each other are the same. The throughput comes from 4.27 GiB/s to 4.39 GiB/s (102.8\% speedup) if we enable this mode. Although it brought improvement to the performance, this option would conflict to \texttt{UCX\_RNDV\_SCHEME=am}. Since the latter option could bring better performance to the task, we decided not to enable this mode. 
+
+\subsubsection{Modify the memory pool buffer grow rate}
+
+There are two options that determine how much buffers are added every time the memory pool grows. \texttt{UCX\_TCP\_RX\_BUFS\_GROW}, \texttt{UCX\_TCP\_TX\_BUFS\_GROW} determines for the receive/send memory pool respectively. We wonder that whether modifying the buffer grow rate could bring better performance for us. Therefore, we've tried to increase the buffer grow rate. The default value of \texttt{UCX\_TCP\_RX\_BUFS\_GROW} and \texttt{UCX\_TCP\_TX\_BUFS\_GROW} are both 8. If we set both of them to 16, the throughput increases from 4.27 GiB/s to 4.68 GiB/s (109.6\% speedup). Nevertheless, if we combine these two options with other optimal configurations, it seems that changing these two options does not guaranteed the result be optimized.
+
+\subsubsection{Use GPU Direct RDMA for HCA to access GPU pages}
+
+This option, \texttt{UCX\_IB\_GPU\_DIRECT\_RDMA} is default to \texttt{try}. It made no noticeable difference in comparison to the baseline. So we guessed that it might be enabled in baseline.
+
+\subsubsection{Reduce the threshold to switch to \textit{Rendezvous} protocol}
+
+It is auto of the option \texttt{UCX\_RNDV\_THRESH} in \textsf{UCX} default and 8192 in \textsf{UXC-Py} default. We used to reduce its value for the purpose of utilizing the \textit{Rendezvous} protocol more. Nonetheless, the result was not apparent.
+
+\subsubsection{Enlarge copy-out buffer for TCP sending and receiving}
+
+The pair of options, \texttt{UCX\_TCP\_TX\_SEG\_SIZE} along with \texttt{UCX\_TCP\_RX\_SEG\_SIZE}, which determines the size of send/receive copy-out buffer respectively, are said to have some impact when the amount of communication is quite large at scale. We tried to enlarge their values, yet the outcome was still not sufficient enough to distinguish from baseline.
+
+\section{Conclusion}
+
+\subsection{All optimal config}
+
+Combining the above options altogether, we have:
+
+\begin{table}[htbp]
+    \caption{Optimized combination of \textsf{UCX} configurations}
+    \label{tab:opt config}
+    \begin{itemize}
+        \ttfamily
+    	\item UCX\_RC\_TM\_ENABLE=y
+        \item UCX\_DC\_TM\_ENABLE=y
+        \item UCX\_USE\_MT\_MUTEX=y
+        \item UCXPY\_NON\_BLOCKING\_MODE=1
+        \item UCX\_RNDV\_SCHEME=am
+        \item UCX\_IB\_GPU\_DIRECT\_RDMA=y
+        \item UCX\_RNDV\_THRESH=1024
+        \item UCX\_TCP\_TX\_SEG\_SIZE=64k
+        \item UCX\_TCP\_RX\_SEG\_SIZE=512k
+    \end{itemize}
+\end{table}
+
+These configurations have been appended to the original \texttt{cluster.cfg}. In addition, we also submit a file \texttt{optimized.cfg} \texttt{}{export}ing all of them only so that one could easily \texttt{source} it.
+
+\subsection{Result}
+
+As the problem description mentioned, our objective is to achieve best bandwidth and throughput performance. We need to run 100 iterations, running on 16 GPUs of 4 nodes, and each $10^6$ and $2.5\times10^7$ rows per chunk, for small data set and large data set, respectively. By modifying the parameters above, we achieve the following results:
+
+\begin{table}[h!]
+    \centering
+    \caption{Average bandwidth of 100 times (With Ordinary Volta GPUs)}
+    \begin{tabular}{c|c|c}
+      \textbf{Chunk size} & \textbf{Default} & \textbf{Optimized Configurations}\\
+      \hline
+      $10^6$ & 507.21 GiB/s & 1.06 GiB/s\\
+      $2.5\times10^7$ & 405.89 MiB/s & 1.15 GiB/s\\
+    \end{tabular}
+    \label{tab:volta_bw}
+\end{table}
+
+\pagebreak
+
+\begin{table}[h!]
+    \centering
+    \caption{Average throughput of 100 times (With Ordinary Volta GPUs)}
+    \begin{tabular}{c|c|c}
+      \textbf{Chunk size} & \textbf{Default} & \textbf{Optimized Configurations}\\
+      \hline
+      $10^6$ & 3.95 GiB/s & \ 9.28 GiB/s\\
+      $2.5\times10^7$ & 4.40 GiB/s & 12.37 GiB/s\\
+    \end{tabular}
+    \label{tab:volta}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=\linewidth,
+            height=.625\linewidth,
+            ybar,
+            bar shift=0,
+            symbolic x coords={Base, TM, Uni, BG, mutex, N-B, RNDV, Optimal}
+        ]
+            \sffamily
+            \addplot[fill=secondary] coordinates {(Base, 1)};
+            \addplot[fill=nthu] coordinates {
+                (TM, 1.021)
+                (Uni, 1.028)
+                (BG, 1.096)
+                (mutex, 1.103)
+                (N-B, 1.161)
+                (RNDV, 1.297)
+            };
+            \addplot[fill=accent] coordinates {(Optimal, 2.173)};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Bar graph of throughput speedup}
+    \label{fig:bar}
+\end{figure}
+
+Figure \ref{fig:bar} illustrate the bar graph of throughput speedup of different options. \textsf{Base}, \textsf{TM}, \textsf{Uni}, \textsf{Uni}, \textsf{BG}, \textsf{mutex}, \textsf{N-B}, \textsf{RNDV} and \textsf{Optimal} represent baseline, \textit{Hardware Tag Matching}, unified mode, buffer grow rates, non-blocking mode, \textit{Rendezvous} scheme and the optimal combination respectively.
+
+The output files created by benchmark are also submitted.
+
+% \subsection{Small Data Set}
+
+% \subsection{Large Data Set}
+
+
+\section{Result running on DGX-A100 nodes}
+
+We are told that there’re two DGX-A100 servers in NCI Gadi, where we may run dataframe merging better, and we may earn some bonus points with the result of running on DGX-A100 nodes. We are curious about the performance with DGX-A100 nodes, thus we also experimented with the DGX servers, the results are listed below:
+
+\begin{table}[h!]
+    \centering
+    \caption{Average bandwidth of 100 times (With DGX-A100s)}
+    \begin{tabular}{c|c|c}
+      \textbf{Chunk size} & \textbf{Default} & \textbf{Optimized Configurations}\\
+      \hline
+      $10^6$ & 2.41 GiB/s & 2.37 GiB/s\\
+      $2.5\times10^7$ & 10.04 GiB/s & \makecell{3.36 GiB/s\footnotemark\\10.19 GiB/s\footnotemark}
+    \end{tabular}
+    \label{tab:a100_bw}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+    \caption{Average throughput of 100 times (With DGX-A100s)}
+    \begin{tabular}{c|c|c}
+      \textbf{Chunk size} & \textbf{Default} & \textbf{Optimized Configurations}\\
+      \hline
+      $10^6$ & 16.66 GiB/s & 16.69 GiB/s\\
+      $2.5\times10^7$ & 88.29 GiB/s & \makecell{34.89 GiB/s\footnotemark\\89.00 GiB/s\footnotemark}
+    \end{tabular}
+    \label{tab:a100}
+\end{table}
+
+It's worth noting that although we mentioned that setting \texttt{UCX\_RNDV\_SCHEME} to \texttt{am} could optimize the performance, this option somehow doesn't work well with DGX A100 servers. Switching this parameter to \textit{Active Messages} makes the performance worse in this case, making the throughput drop drastically from 88.29 GiB/s to 34.89 GiB/s. On the contrary, switch back to default scheme makes the performance a bit better, which makes the throughput increases to 89.00 GiB/s.
+
+% \subsection{Small Data Set}
+
+% \subsection{Large Data Set}
+
+\end{document}
